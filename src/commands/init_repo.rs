@@ -101,7 +101,10 @@ fn convert_existing() -> Result<()> {
     // Must be inside a git repo
     let git_dir_output = git::run(&["rev-parse", "--git-dir"])?;
 
-    if git_dir_output == "." || git_dir_output.ends_with("/.bare") {
+    if git_dir_output == "."
+        || git_dir_output.ends_with("/.bare")
+        || git_dir_output.contains("/.bare/")
+    {
         bail!("This repository is already in wb's bare-repo layout");
     }
 
@@ -120,6 +123,16 @@ fn convert_existing() -> Result<()> {
         bail!("fatal: .bare directory already exists");
     }
 
+    // Collect working tree files before moving .git
+    let entries: Vec<_> = fs::read_dir(&repo_root)?
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            let name = e.file_name();
+            let name_str = name.to_string_lossy();
+            name_str != ".git" && name_str != ".bare"
+        })
+        .collect();
+
     // Move .git/ → .bare/
     eprintln!("Converting repository to bare-repo layout...");
     fs::rename(&dot_git, &bare_dir).context("failed to move .git to .bare")?;
@@ -127,64 +140,57 @@ fn convert_existing() -> Result<()> {
     // Write .git file pointing to .bare
     fs::write(&dot_git, "gitdir: ./.bare\n").context("failed to write .git file")?;
 
-    // Configure bare repo
+    // Configure: not a bare repo (so worktree commands work)
     git::run_in(&bare_dir, &["config", "core.bare", "false"])?;
 
-    // The current working tree files are already in repo_root.
-    // We need to create a worktree directory and move files there.
+    // Use `git worktree add` to properly create the worktree with all admin files,
+    // then move existing working tree files into it.
     let worktree_path = repo_root.join(&current_branch);
 
-    // Create worktree entry (without checking out, since files are already here)
-    // First, add a worktree entry pointing to a temp location
-    // Actually, we need to move the working tree files into the worktree dir
+    // Detach HEAD in the bare repo so the branch isn't "checked out" there
+    let head_commit = git::run_in(&bare_dir, &["rev-parse", "HEAD"])?;
+    git::run_in(&bare_dir, &["update-ref", "--no-deref", "HEAD", &head_commit])?;
 
-    // List all files in repo root (excluding .bare, .git, and the target worktree dir)
-    let entries: Vec<_> = fs::read_dir(&repo_root)?
+    // Create the worktree via git (sets up .git file, commondir, index, etc.)
+    git::run_in(&bare_dir, &[
+        "worktree",
+        "add",
+        &worktree_path.to_string_lossy(),
+        &current_branch,
+    ])?;
+
+    // Remove the freshly checked-out files from the worktree (we'll move ours in)
+    let checkout_entries: Vec<_> = fs::read_dir(&worktree_path)?
         .filter_map(|e| e.ok())
         .filter(|e| {
             let name = e.file_name();
             let name_str = name.to_string_lossy();
-            name_str != ".bare" && name_str != ".git" && name_str != current_branch
+            name_str != ".git"
         })
         .collect();
+    for entry in checkout_entries {
+        let path = entry.path();
+        if path.is_dir() {
+            fs::remove_dir_all(&path)?;
+        } else {
+            fs::remove_file(&path)?;
+        }
+    }
 
-    // Create worktree directory
-    fs::create_dir_all(&worktree_path)?;
-
-    // Move all working tree files into the worktree directory
+    // Move original working tree files into the worktree directory
     for entry in entries {
         let from = entry.path();
-        let to = worktree_path.join(entry.file_name());
+        let name = entry.file_name();
+        let name_str = name.to_string_lossy();
+        // Skip the worktree directory itself if it somehow got collected
+        if name_str == current_branch {
+            continue;
+        }
+        let to = worktree_path.join(&*name_str);
         fs::rename(&from, &to).with_context(|| {
             format!("failed to move {} to {}", from.display(), to.display())
         })?;
     }
-
-    // Register the worktree with git
-    // We need to set up the worktree's .git file
-    let wt_git_file = worktree_path.join(".git");
-    let rel_bare = pathdiff_simple(&worktree_path, &bare_dir);
-    fs::write(
-        &wt_git_file,
-        format!("gitdir: {}/worktrees/{}\n", rel_bare, current_branch),
-    )?;
-
-    // Create worktrees dir in bare repo
-    let wt_admin_dir = bare_dir.join("worktrees").join(&current_branch);
-    fs::create_dir_all(&wt_admin_dir)?;
-
-    // Write gitdir file in worktree admin dir
-    let abs_worktree = worktree_path.canonicalize().unwrap_or(worktree_path.clone());
-    fs::write(
-        wt_admin_dir.join("gitdir"),
-        format!("{}/.git\n", abs_worktree.display()),
-    )?;
-
-    // Write HEAD file
-    fs::write(
-        wt_admin_dir.join("HEAD"),
-        format!("ref: refs/heads/{}\n", current_branch),
-    )?;
 
     eprintln!("Converted to bare-repo layout.");
     eprintln!("Worktree for '{}' at: {}", current_branch, worktree_path.display());
@@ -194,40 +200,4 @@ fn convert_existing() -> Result<()> {
     println!("__wb_cd:{}", canonical.display());
 
     Ok(())
-}
-
-/// Simple relative path computation (parent → child becomes "../child" style).
-fn pathdiff_simple(from: &Path, to: &Path) -> String {
-    // Simple: since worktree is one level below repo root, and .bare is also one level below
-    // We just use a relative path
-    let from_abs = from.canonicalize().unwrap_or_else(|_| from.to_path_buf());
-    let to_abs = to.canonicalize().unwrap_or_else(|_| to.to_path_buf());
-
-    // Count how many components we need to go up from `from` to reach common ancestor
-    let from_components: Vec<_> = from_abs.components().collect();
-    let to_components: Vec<_> = to_abs.components().collect();
-
-    let common = from_components
-        .iter()
-        .zip(to_components.iter())
-        .take_while(|(a, b)| a == b)
-        .count();
-
-    let ups = from_components.len() - common;
-    let mut result = String::new();
-    for _ in 0..ups {
-        result.push_str("../");
-    }
-    for (i, comp) in to_components[common..].iter().enumerate() {
-        if i > 0 {
-            result.push('/');
-        }
-        result.push_str(&comp.as_os_str().to_string_lossy());
-    }
-
-    if result.is_empty() {
-        ".".to_string()
-    } else {
-        result.trim_end_matches('/').to_string()
-    }
 }
