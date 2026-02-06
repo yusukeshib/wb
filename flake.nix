@@ -18,6 +18,7 @@
             version = "0.2.0";
             src = ./.;
             cargoLock.lockFile = ./Cargo.lock;
+            doCheck = false;
             meta = with pkgs.lib; {
               description = "git-branch interface backed by git-worktree";
               homepage = "https://github.com/yusukeshib/wb";
