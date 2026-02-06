@@ -3,8 +3,8 @@
 use std::fs;
 use std::process::Command;
 
-use assert_cmd::cargo::CommandCargoExt;
 use assert_cmd::assert::OutputAssertExt;
+use assert_cmd::cargo::CommandCargoExt;
 use predicates::prelude::*;
 use tempfile::TempDir;
 

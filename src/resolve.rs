@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::config::{WbConfig, NamingConvention};
+use crate::config::{NamingConvention, WbConfig};
 
 /// Convert a branch name to a worktree directory path.
 pub fn branch_to_worktree_path(config: &WbConfig, branch: &str) -> PathBuf {

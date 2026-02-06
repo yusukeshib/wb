@@ -25,16 +25,17 @@ fn run() -> Result<()> {
 
     match cli.mode() {
         CliMode::Init => {
-            if let Some(InitCommand::Init { ref target, ref directory }) = cli.command {
+            if let Some(InitCommand::Init {
+                ref target,
+                ref directory,
+            }) = cli.command
+            {
                 match target.as_deref() {
                     Some("zsh") | Some("bash") | Some("fish") => {
                         shell::output_shell_init(target.as_deref().unwrap())?;
                     }
                     _ => {
-                        commands::init_repo::run(
-                            target.as_deref(),
-                            directory.as_deref(),
-                        )?;
+                        commands::init_repo::run(target.as_deref(), directory.as_deref())?;
                     }
                 }
             }
@@ -43,18 +44,19 @@ fn run() -> Result<()> {
         CliMode::List => {
             let pattern = cli.list_pattern.as_ref().and_then(|p| p.as_deref());
 
-            let merged = cli.merged.as_ref().map(|m| {
-                m.as_deref().unwrap_or("HEAD")
-            });
-            let no_merged = cli.no_merged.as_ref().map(|m| {
-                m.as_deref().unwrap_or("HEAD")
-            });
-            let contains = cli.contains.as_ref().map(|m| {
-                m.as_deref().unwrap_or("HEAD")
-            });
-            let no_contains = cli.no_contains.as_ref().map(|m| {
-                m.as_deref().unwrap_or("HEAD")
-            });
+            let merged = cli.merged.as_ref().map(|m| m.as_deref().unwrap_or("HEAD"));
+            let no_merged = cli
+                .no_merged
+                .as_ref()
+                .map(|m| m.as_deref().unwrap_or("HEAD"));
+            let contains = cli
+                .contains
+                .as_ref()
+                .map(|m| m.as_deref().unwrap_or("HEAD"));
+            let no_contains = cli
+                .no_contains
+                .as_ref()
+                .map(|m| m.as_deref().unwrap_or("HEAD"));
 
             commands::list::run(
                 cli.all,

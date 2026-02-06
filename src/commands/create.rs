@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 
 use crate::config::WbConfig;
 use crate::git;
@@ -29,7 +29,10 @@ pub fn run(name: &str, start_point: Option<&str>) -> Result<()> {
     let wt_path = resolve::branch_to_worktree_path(&config, name);
 
     if wt_path.exists() {
-        bail!("fatal: worktree path '{}' already exists", wt_path.display());
+        bail!(
+            "fatal: worktree path '{}' already exists",
+            wt_path.display()
+        );
     }
 
     worktree::add_worktree(&wt_path, name, true, start_point)?;

@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 
 /// Run a git command capturing stdout. Returns trimmed output.
 pub fn run(args: &[&str]) -> Result<String> {
@@ -42,7 +42,10 @@ pub fn run_interactive(args: &[&str]) -> Result<()> {
         .context("failed to execute git")?;
 
     if !status.success() {
-        bail!("git command failed with exit code {}", status.code().unwrap_or(1));
+        bail!(
+            "git command failed with exit code {}",
+            status.code().unwrap_or(1)
+        );
     }
 
     Ok(())
@@ -160,7 +163,12 @@ pub fn list_branches(filter: BranchFilter) -> Result<Vec<BranchInfo>> {
     // For "All" scope, we need to distinguish local vs remote
     // Re-query to mark remote branches
     if matches!(filter.scope, BranchScope::All | BranchScope::Remote) {
-        let remote_output = run(&["for-each-ref", "--format", "%(refname:short)", "refs/remotes/"])?;
+        let remote_output = run(&[
+            "for-each-ref",
+            "--format",
+            "%(refname:short)",
+            "refs/remotes/",
+        ])?;
         let remote_names: Vec<&str> = remote_output.lines().collect();
         for branch in &mut branches {
             if remote_names.contains(&branch.name.as_str()) {

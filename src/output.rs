@@ -4,7 +4,11 @@ use crate::git::BranchInfo;
 use crate::worktree::WorktreeInfo;
 
 /// Format branch listing output, similar to `git branch` output.
-pub fn format_branch_list(branches: &[BranchInfo], worktrees: &[WorktreeInfo], verbose: u8) -> String {
+pub fn format_branch_list(
+    branches: &[BranchInfo],
+    worktrees: &[WorktreeInfo],
+    verbose: u8,
+) -> String {
     let mut lines = Vec::new();
 
     for branch in branches {
@@ -31,9 +35,9 @@ fn format_branch_line(branch: &BranchInfo, worktrees: &[WorktreeInfo], verbose: 
     };
 
     // Check if branch has a worktree
-    let has_worktree = worktrees.iter().any(|wt| {
-        wt.branch.as_deref() == Some(&branch.name) && !wt.is_bare
-    });
+    let has_worktree = worktrees
+        .iter()
+        .any(|wt| wt.branch.as_deref() == Some(&branch.name) && !wt.is_bare);
 
     let worktree_indicator = if has_worktree && !branch.is_head {
         " +".cyan().to_string()

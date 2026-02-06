@@ -62,7 +62,12 @@ pub fn list_worktrees() -> Result<Vec<WorktreeInfo>> {
 }
 
 /// Add a new worktree for a branch.
-pub fn add_worktree(path: &Path, branch: &str, create_branch: bool, start_point: Option<&str>) -> Result<()> {
+pub fn add_worktree(
+    path: &Path,
+    branch: &str,
+    create_branch: bool,
+    start_point: Option<&str>,
+) -> Result<()> {
     let path_str = path.to_string_lossy();
     let mut args: Vec<&str> = vec!["worktree", "add"];
 
@@ -105,9 +110,9 @@ pub fn move_worktree(old_path: &Path, new_path: &Path) -> Result<()> {
 /// Find the worktree for a given branch name.
 pub fn find_worktree_for_branch(branch: &str) -> Result<Option<WorktreeInfo>> {
     let worktrees = list_worktrees()?;
-    Ok(worktrees.into_iter().find(|wt| {
-        wt.branch.as_deref() == Some(branch)
-    }))
+    Ok(worktrees
+        .into_iter()
+        .find(|wt| wt.branch.as_deref() == Some(branch)))
 }
 
 /// Find which worktree contains the given directory (for --show-current).

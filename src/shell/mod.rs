@@ -2,7 +2,7 @@ pub mod bash;
 pub mod fish;
 pub mod zsh;
 
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 
 /// Output shell integration code for the given shell.
 pub fn output_shell_init(shell: &str) -> Result<()> {

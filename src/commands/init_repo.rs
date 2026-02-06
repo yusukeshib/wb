@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 
 use crate::git;
 
@@ -44,23 +44,21 @@ fn clone_bare(url: &str, directory: Option<&str>) -> Result<()> {
 
     // Clone as bare repo
     eprintln!("Cloning into bare repository '{}'...", bare_dir.display());
-    git::run(&[
-        "clone",
-        "--bare",
-        url,
-        &bare_dir.to_string_lossy(),
-    ])?;
+    git::run(&["clone", "--bare", url, &bare_dir.to_string_lossy()])?;
 
     // Write .git file pointing to .bare
     let git_file = dir.join(".git");
     fs::write(&git_file, "gitdir: ./.bare\n").context("failed to write .git file")?;
 
     // Fix remote.origin.fetch (bare clone sets it to +refs/heads/*:refs/heads/*)
-    git::run_in(&bare_dir, &[
-        "config",
-        "remote.origin.fetch",
-        "+refs/heads/*:refs/remotes/origin/*",
-    ])?;
+    git::run_in(
+        &bare_dir,
+        &[
+            "config",
+            "remote.origin.fetch",
+            "+refs/heads/*:refs/remotes/origin/*",
+        ],
+    )?;
 
     // Determine default branch
     let default_branch = detect_default_branch(&bare_dir)?;
@@ -70,12 +68,15 @@ fn clone_bare(url: &str, directory: Option<&str>) -> Result<()> {
 
     // Create worktree for default branch
     let worktree_path = dir.join(&default_branch);
-    git::run_in(&bare_dir, &[
-        "worktree",
-        "add",
-        &worktree_path.to_string_lossy(),
-        &default_branch,
-    ])?;
+    git::run_in(
+        &bare_dir,
+        &[
+            "worktree",
+            "add",
+            &worktree_path.to_string_lossy(),
+            &default_branch,
+        ],
+    )?;
 
     // Output cd directive for the shell wrapper
     let canonical = worktree_path.canonicalize().unwrap_or(worktree_path);
@@ -113,8 +114,7 @@ fn convert_existing() -> Result<()> {
     let repo_root = PathBuf::from(&repo_root);
 
     // Get current branch
-    let current_branch = git::current_branch()
-        .unwrap_or_else(|_| "main".to_string());
+    let current_branch = git::current_branch().unwrap_or_else(|_| "main".to_string());
 
     let dot_git = repo_root.join(".git");
     let bare_dir = repo_root.join(".bare");
@@ -149,15 +149,21 @@ fn convert_existing() -> Result<()> {
 
     // Detach HEAD in the bare repo so the branch isn't "checked out" there
     let head_commit = git::run_in(&bare_dir, &["rev-parse", "HEAD"])?;
-    git::run_in(&bare_dir, &["update-ref", "--no-deref", "HEAD", &head_commit])?;
+    git::run_in(
+        &bare_dir,
+        &["update-ref", "--no-deref", "HEAD", &head_commit],
+    )?;
 
     // Create the worktree via git (sets up .git file, commondir, index, etc.)
-    git::run_in(&bare_dir, &[
-        "worktree",
-        "add",
-        &worktree_path.to_string_lossy(),
-        &current_branch,
-    ])?;
+    git::run_in(
+        &bare_dir,
+        &[
+            "worktree",
+            "add",
+            &worktree_path.to_string_lossy(),
+            &current_branch,
+        ],
+    )?;
 
     // Remove the freshly checked-out files from the worktree (we'll move ours in)
     let checkout_entries: Vec<_> = fs::read_dir(&worktree_path)?
@@ -187,13 +193,16 @@ fn convert_existing() -> Result<()> {
             continue;
         }
         let to = worktree_path.join(&*name_str);
-        fs::rename(&from, &to).with_context(|| {
-            format!("failed to move {} to {}", from.display(), to.display())
-        })?;
+        fs::rename(&from, &to)
+            .with_context(|| format!("failed to move {} to {}", from.display(), to.display()))?;
     }
 
     eprintln!("Converted to bare-repo layout.");
-    eprintln!("Worktree for '{}' at: {}", current_branch, worktree_path.display());
+    eprintln!(
+        "Worktree for '{}' at: {}",
+        current_branch,
+        worktree_path.display()
+    );
 
     // Output cd directive
     let canonical = worktree_path.canonicalize().unwrap_or(worktree_path);

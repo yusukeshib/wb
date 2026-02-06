@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 
 use crate::git;
 use crate::worktree;
@@ -17,7 +17,10 @@ fn delete_one(name: &str, force: bool) -> Result<()> {
     if let Ok(cwd) = std::env::current_dir() {
         if let Ok(Some(current_wt)) = worktree::find_worktree_for_path(&cwd) {
             if current_wt.branch.as_deref() == Some(name) {
-                bail!("fatal: cannot delete branch '{}' while you are in its worktree", name);
+                bail!(
+                    "fatal: cannot delete branch '{}' while you are in its worktree",
+                    name
+                );
             }
         }
     }
