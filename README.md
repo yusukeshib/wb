@@ -14,7 +14,30 @@
 
 ## Install
 
+### From crates.io
+
 ```sh
+cargo install wb
+```
+
+### With Nix
+
+```sh
+# Run directly
+nix run github:yusukeshib/wb
+
+# Install to profile
+nix profile install github:yusukeshib/wb
+
+# Dev shell
+nix develop github:yusukeshib/wb
+```
+
+### From source
+
+```sh
+git clone https://github.com/yusukeshib/wb.git
+cd wb
 cargo install --path .
 ```
 
