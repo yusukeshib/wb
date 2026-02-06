@@ -6,26 +6,21 @@ use crate::resolve;
 use crate::worktree;
 
 /// Copy a branch and create a new worktree.
-/// `wb -c [<old>] <new>` or `wb -C [<old>] <new>`
-pub fn run(names: &[String], force: bool) -> Result<()> {
-    let (old_name, new_name) = match names.len() {
-        1 => {
-            // Copy current branch
-            let current = current_branch_from_cwd()?;
-            (current, names[0].clone())
-        }
-        2 => (names[0].clone(), names[1].clone()),
-        _ => bail!("usage: wb -c [<old-branch>] <new-branch>"),
+/// `wb copy <new> [<from>]`
+pub fn run(new_name: &str, from: Option<&str>) -> Result<()> {
+    let old_name = match from {
+        Some(name) => name.to_string(),
+        None => current_branch_from_cwd()?,
     };
 
     let config = WbConfig::load()?;
 
     // Copy the git branch ref
-    git::copy_branch(&old_name, &new_name, force)?;
+    git::copy_branch(&old_name, new_name, false)?;
 
     // Create worktree for the new branch
-    let new_path = resolve::branch_to_worktree_path(&config, &new_name);
-    worktree::add_worktree(&new_path, &new_name, false, None)?;
+    let new_path = resolve::branch_to_worktree_path(&config, new_name);
+    worktree::add_worktree(&new_path, new_name, false, None)?;
 
     eprintln!(
         "Branch '{}' copied to '{}', worktree at '{}'",

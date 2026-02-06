@@ -18,8 +18,8 @@ cargo run -- --help  # see CLI help
 
 ```
 src/
-  main.rs              — Entry point, CLI dispatch via mode() enum
-  cli.rs               — Clap derive-based arg parsing (flat struct + init subcommand)
+  main.rs              — Entry point, CLI dispatch via subcommand match
+  cli.rs               — Clap derive-based arg parsing (subcommand enum)
   git.rs               — All git interaction via std::process::Command
   worktree.rs          — Parse/manage worktrees via `git worktree` commands
   config.rs            — Read wb.worktreeDir, wb.naming from git config
@@ -32,7 +32,7 @@ src/
 
 ### Key patterns
 
-- **No subcommands for branch ops**: CLI uses a flat struct with flags (`-d`, `-m`, etc.) and positional args. `cli.rs:mode()` determines which command to dispatch.
+- **Subcommand-based CLI**: `wb <command> [args]` — init, list, create, delete, rename, copy. `wb` with no args shows help.
 - **`__wb_cd:` protocol**: The binary prints `__wb_cd:/path` to stdout when it wants the shell to `cd`. The shell wrapper function (from `eval "$(wb init zsh)"`) intercepts this.
 - **Current branch from cwd**: Not from HEAD (meaningless in bare repo). Instead, matches cwd against worktree paths.
 - **Git interaction**: All via `git::run()` / `git::run_in()` calling `std::process::Command`. No libgit2.
@@ -46,18 +46,17 @@ Branch `feature/auth` becomes directory:
 
 ## Implementation status
 
-### Done (Phase 1 + most of Phase 2 + Phase 3)
-- All git-branch flags: create, delete, rename, copy, list, upstream, show-current, show-path, edit-description
-- Full listing modifiers: -a, -r, -v, -vv, --list, --merged, --no-merged, --contains, --no-contains, --sort
+### Done
+- Subcommands: init, list, create, delete, rename, copy
 - `wb init <url>` — bare clone with worktree layout
 - `wb init` — in-place conversion of existing repo
 - Shell integration: zsh, bash, fish
 - Colored output matching git-branch format
 - Unit tests for resolve module
+- Integration tests for init
 
 ### TODO
-- Integration tests with `assert_cmd` + `tempfile`
-- `--color`/`--no-color` flag handling
+- Integration tests with `assert_cmd` + `tempfile` for more commands
 - Edge case handling: detached HEAD, orphan branches
 - Man page / --help improvements
 - `wb init` in-place conversion needs more testing with complex repos

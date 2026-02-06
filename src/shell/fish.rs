@@ -18,37 +18,26 @@ end
 # Fish completions
 complete -c wb -f
 
-# Flags
-complete -c wb -s d -d 'Delete branch'
-complete -c wb -s D -d 'Force delete branch'
-complete -c wb -s m -d 'Rename branch'
-complete -c wb -s M -d 'Force rename branch'
-complete -c wb -s c -d 'Copy branch'
-complete -c wb -s C -d 'Force copy branch'
-complete -c wb -s a -d 'List all branches'
-complete -c wb -s r -d 'List remote branches'
-complete -c wb -s v -d 'Verbose output'
-complete -c wb -s u -d 'Set upstream'
-complete -c wb -l list -d 'List with pattern'
-complete -c wb -l merged -d 'Show merged branches'
-complete -c wb -l no-merged -d 'Show unmerged branches'
-complete -c wb -l contains -d 'Branches containing commit'
-complete -c wb -l no-contains -d 'Branches not containing commit'
-complete -c wb -l sort -d 'Sort by key'
-complete -c wb -l show-current -d 'Show current branch'
-complete -c wb -l show-path -d 'Show worktree path'
-complete -c wb -l edit-description -d 'Edit description'
-complete -c wb -l set-upstream-to -d 'Set upstream'
-complete -c wb -l unset-upstream -d 'Unset upstream'
+# Subcommands (only when no subcommand given yet)
+complete -c wb -n '__fish_use_subcommand' -a init -d 'Initialize (shell integration or clone)'
+complete -c wb -n '__fish_use_subcommand' -a list -d 'List local branches'
+complete -c wb -n '__fish_use_subcommand' -a create -d 'Create a branch with worktree'
+complete -c wb -n '__fish_use_subcommand' -a delete -d 'Delete branch(es) and worktrees'
+complete -c wb -n '__fish_use_subcommand' -a rename -d 'Rename a branch and move worktree'
+complete -c wb -n '__fish_use_subcommand' -a copy -d 'Copy a branch and create worktree'
 
-# Subcommand
-complete -c wb -a init -d 'Initialize (shell or clone)'
+# init subcommand
+complete -c wb -n '__fish_seen_subcommand_from init' -a 'zsh bash fish'
 
-# Branch name completions
-complete -c wb -a '(command git for-each-ref --format="%(refname:short)" refs/heads/ 2>/dev/null)'
+# create/rename/copy: branch completions
+complete -c wb -n '__fish_seen_subcommand_from create rename copy' -a '(command git for-each-ref --format="%(refname:short)" refs/heads/ 2>/dev/null)'
+
+# delete: --force flag + branch completions
+complete -c wb -n '__fish_seen_subcommand_from delete' -l force -d 'Force delete'
+complete -c wb -n '__fish_seen_subcommand_from delete' -a '(command git for-each-ref --format="%(refname:short)" refs/heads/ 2>/dev/null)'
 
 # Prompt helper
 function wb_current_branch
-    command wb --show-current 2>/dev/null
+    command git branch --show-current 2>/dev/null
 end
 "#;

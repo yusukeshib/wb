@@ -4,22 +4,18 @@ use crate::git::BranchInfo;
 use crate::worktree::WorktreeInfo;
 
 /// Format branch listing output, similar to `git branch` output.
-pub fn format_branch_list(
-    branches: &[BranchInfo],
-    worktrees: &[WorktreeInfo],
-    verbose: u8,
-) -> String {
+pub fn format_branch_list(branches: &[BranchInfo], worktrees: &[WorktreeInfo]) -> String {
     let mut lines = Vec::new();
 
     for branch in branches {
-        let line = format_branch_line(branch, worktrees, verbose);
+        let line = format_branch_line(branch, worktrees);
         lines.push(line);
     }
 
     lines.join("\n")
 }
 
-fn format_branch_line(branch: &BranchInfo, worktrees: &[WorktreeInfo], verbose: u8) -> String {
+fn format_branch_line(branch: &BranchInfo, worktrees: &[WorktreeInfo]) -> String {
     let prefix = if branch.is_head {
         "* ".green().to_string()
     } else {
@@ -45,31 +41,5 @@ fn format_branch_line(branch: &BranchInfo, worktrees: &[WorktreeInfo], verbose: 
         String::new()
     };
 
-    if verbose == 0 {
-        format!("{}{}{}", prefix, name, worktree_indicator)
-    } else {
-        let hash = branch.objectname.yellow().to_string();
-        let upstream_info = if !branch.upstream_track.is_empty() {
-            format!(" {}", branch.upstream_track)
-        } else {
-            String::new()
-        };
-
-        if verbose >= 2 {
-            let upstream_name = if !branch.upstream.is_empty() {
-                format!(" [{}{}]", branch.upstream.blue(), upstream_info)
-            } else {
-                String::new()
-            };
-            format!(
-                "{}{}{} {} {} {}",
-                prefix, name, worktree_indicator, hash, upstream_name, branch.subject
-            )
-        } else {
-            format!(
-                "{}{}{} {} {}{}",
-                prefix, name, worktree_indicator, hash, branch.subject, upstream_info
-            )
-        }
-    }
+    format!("{}{}{}", prefix, name, worktree_indicator)
 }

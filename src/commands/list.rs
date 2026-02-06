@@ -1,39 +1,12 @@
 use anyhow::Result;
 
-use crate::git::{self, BranchFilter, BranchScope};
+use crate::git::{self, BranchFilter};
 use crate::output;
 use crate::worktree;
 
-/// List branches.
-/// `wb`, `wb -a`, `wb -r`, `wb -v`, `wb -vv`, `wb --list <pattern>`, etc.
-pub fn run(
-    all: bool,
-    remotes: bool,
-    verbose: u8,
-    pattern: Option<&str>,
-    merged: Option<&str>,
-    no_merged: Option<&str>,
-    contains: Option<&str>,
-    no_contains: Option<&str>,
-    sort: Option<&str>,
-) -> Result<()> {
-    let scope = if all {
-        BranchScope::All
-    } else if remotes {
-        BranchScope::Remote
-    } else {
-        BranchScope::Local
-    };
-
-    let filter = BranchFilter {
-        scope,
-        sort: sort.map(|s| s.to_string()),
-        merged: merged.map(|s| s.to_string()),
-        no_merged: no_merged.map(|s| s.to_string()),
-        contains: contains.map(|s| s.to_string()),
-        no_contains: no_contains.map(|s| s.to_string()),
-        pattern: pattern.map(|s| s.to_string()),
-    };
+/// List local branches.
+pub fn run() -> Result<()> {
+    let filter = BranchFilter::default();
 
     // Detect current branch from cwd
     let mut branches = git::list_branches(filter)?;
@@ -50,7 +23,7 @@ pub fn run(
     }
 
     let worktrees = worktree::list_worktrees().unwrap_or_default();
-    let output = output::format_branch_list(&branches, &worktrees, verbose);
+    let output = output::format_branch_list(&branches, &worktrees);
 
     if !output.is_empty() {
         println!("{}", output);

@@ -21,24 +21,23 @@ pub fn list_worktrees() -> Result<Vec<WorktreeInfo>> {
     let mut current: Option<WorktreeInfo> = None;
 
     for line in output.lines() {
-        if line.starts_with("worktree ") {
+        if let Some(stripped) = line.strip_prefix("worktree ") {
             if let Some(wt) = current.take() {
                 worktrees.push(wt);
             }
             current = Some(WorktreeInfo {
-                path: PathBuf::from(&line["worktree ".len()..]),
+                path: PathBuf::from(stripped),
                 head: String::new(),
                 branch: None,
                 is_bare: false,
                 is_detached: false,
             });
-        } else if line.starts_with("HEAD ") {
+        } else if let Some(stripped) = line.strip_prefix("HEAD ") {
             if let Some(ref mut wt) = current {
-                wt.head = line["HEAD ".len()..].to_string();
+                wt.head = stripped.to_string();
             }
-        } else if line.starts_with("branch ") {
+        } else if let Some(full_ref) = line.strip_prefix("branch ") {
             if let Some(ref mut wt) = current {
-                let full_ref = &line["branch ".len()..];
                 // Strip refs/heads/ prefix
                 let branch = full_ref.strip_prefix("refs/heads/").unwrap_or(full_ref);
                 wt.branch = Some(branch.to_string());

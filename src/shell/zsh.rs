@@ -17,43 +17,52 @@ wb() {
 
 # Zsh completions
 _wb() {
-  local -a branches
+  local -a subcmds
+  subcmds=(
+    'init:Initialize (shell integration or clone)'
+    'list:List local branches'
+    'create:Create a branch with worktree'
+    'delete:Delete branch(es) and worktrees'
+    'rename:Rename a branch and move worktree'
+    'copy:Copy a branch and create worktree'
+  )
 
-  _arguments \
-    '-d[Delete branch]:*:branch:->branches' \
-    '-D[Force delete branch]:*:branch:->branches' \
-    '-m[Rename branch]:*:branch:->branches' \
-    '-M[Force rename branch]:*:branch:->branches' \
-    '-c[Copy branch]:*:branch:->branches' \
-    '-C[Force copy branch]:*:branch:->branches' \
-    '-a[List all branches]' \
-    '-r[List remote branches]' \
-    '-v[Verbose output]' \
-    '-u[Set upstream]:upstream:->remotes' \
-    '--set-upstream-to=[Set upstream]:upstream:->remotes' \
-    '--unset-upstream[Unset upstream]' \
-    '--list=[List with pattern]:pattern:' \
-    '--merged=[Show merged branches]:commit:' \
-    '--no-merged=[Show unmerged branches]:commit:' \
-    '--contains=[Branches containing commit]:commit:' \
-    '--no-contains=[Branches not containing commit]:commit:' \
-    '--sort=[Sort by key]:key:(refname objectname committerdate authordate)' \
-    '--show-current[Show current branch]' \
-    '--show-path=[Show worktree path]:branch:->branches' \
-    '--edit-description[Edit description]' \
-    'init:Initialize (shell or clone)' \
-    '*:branch:->branches'
+  if (( CURRENT == 2 )); then
+    _describe 'subcommand' subcmds
+    return
+  fi
 
-  case $state in
-    branches)
+  case "${words[2]}" in
+    init)
+      if (( CURRENT == 3 )); then
+        _alternative \
+          'shells:shell:(zsh bash fish)' \
+          'urls:url:_urls'
+      elif (( CURRENT == 4 )); then
+        _arguments '-d[Directory to clone into]:directory:_directories'
+      fi
+      ;;
+    create)
       local -a branch_list
       branch_list=(${(f)"$(command git for-each-ref --format='%(refname:short)' refs/heads/ 2>/dev/null)"})
       _describe 'branch' branch_list
       ;;
-    remotes)
-      local -a remote_list
-      remote_list=(${(f)"$(command git branch -r --format='%(refname:short)' 2>/dev/null)"})
-      _describe 'remote branch' remote_list
+    delete)
+      _arguments \
+        '--force[Force delete]' \
+        '*:branch:->branches'
+      if [[ $state == branches ]]; then
+        local -a branch_list
+        branch_list=(${(f)"$(command git for-each-ref --format='%(refname:short)' refs/heads/ 2>/dev/null)"})
+        _describe 'branch' branch_list
+      fi
+      ;;
+    rename|copy)
+      local -a branch_list
+      branch_list=(${(f)"$(command git for-each-ref --format='%(refname:short)' refs/heads/ 2>/dev/null)"})
+      _describe 'branch' branch_list
+      ;;
+    list)
       ;;
   esac
 }
@@ -61,6 +70,6 @@ compdef _wb wb
 
 # Prompt helper
 wb_current_branch() {
-  command wb --show-current 2>/dev/null
+  command git branch --show-current 2>/dev/null
 }
 "#;
