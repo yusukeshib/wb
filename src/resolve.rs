@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
-use crate::config::{GbConfig, NamingConvention};
+use crate::config::{WbConfig, NamingConvention};
 
 /// Convert a branch name to a worktree directory path.
-pub fn branch_to_worktree_path(config: &GbConfig, branch: &str) -> PathBuf {
+pub fn branch_to_worktree_path(config: &WbConfig, branch: &str) -> PathBuf {
     let dir_name = sanitize_branch_name(branch, &config.naming);
     config.worktree_dir.join(dir_name)
 }
@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn test_worktree_path() {
-        let config = GbConfig {
+        let config = WbConfig {
             worktree_dir: PathBuf::from("/home/user/project"),
             naming: NamingConvention::Flat,
         };

@@ -4,7 +4,7 @@ use crate::git;
 use crate::worktree;
 
 /// Delete one or more branches and their worktrees.
-/// `gb -d <name>...` or `gb -D <name>...`
+/// `wb -d <name>...` or `wb -D <name>...`
 pub fn run(names: &[String], force: bool) -> Result<()> {
     for name in names {
         delete_one(name, force)?;

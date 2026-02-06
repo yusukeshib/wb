@@ -4,7 +4,7 @@ use crate::git;
 use crate::worktree;
 
 /// Set upstream for a branch.
-/// `gb -u <upstream> [<branch>]`
+/// `wb -u <upstream> [<branch>]`
 pub fn set(upstream: &str, branch: Option<&str>) -> Result<()> {
     let branch_name = match branch {
         Some(b) => b.to_string(),
@@ -21,7 +21,7 @@ pub fn set(upstream: &str, branch: Option<&str>) -> Result<()> {
 }
 
 /// Unset upstream for a branch.
-/// `gb --unset-upstream [<branch>]`
+/// `wb --unset-upstream [<branch>]`
 pub fn unset(branch: Option<&str>) -> Result<()> {
     let branch_name = match branch {
         Some(b) => b.to_string(),

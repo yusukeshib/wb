@@ -1,13 +1,13 @@
-pub const SHELL_INIT: &str = r#"# gb shell integration for zsh
-# Add to .zshrc: eval "$(gb init zsh)"
+pub const SHELL_INIT: &str = r#"# wb shell integration for zsh
+# Add to .zshrc: eval "$(wb init zsh)"
 
-gb() {
+wb() {
   local result
-  result=$(command gb "$@")
+  result=$(command wb "$@")
   local exit_code=$?
 
-  if [[ "$result" == __gb_cd:* ]]; then
-    builtin cd "${result#__gb_cd:}"
+  if [[ "$result" == __wb_cd:* ]]; then
+    builtin cd "${result#__wb_cd:}"
   elif [[ -n "$result" ]]; then
     echo "$result"
   fi
@@ -16,7 +16,7 @@ gb() {
 }
 
 # Zsh completions
-_gb() {
+_wb() {
   local -a branches
 
   _arguments \
@@ -57,10 +57,10 @@ _gb() {
       ;;
   esac
 }
-compdef _gb gb
+compdef _wb wb
 
 # Prompt helper
-gb_current_branch() {
-  command gb --show-current 2>/dev/null
+wb_current_branch() {
+  command wb --show-current 2>/dev/null
 }
 "#;

@@ -50,7 +50,7 @@ pub fn run_interactive(args: &[&str]) -> Result<()> {
 
 /// Find the git toplevel (bare repo root or .bare directory).
 pub fn find_git_dir() -> Result<PathBuf> {
-    // First check if we're in a worktree managed by gb
+    // First check if we're in a worktree managed by wb
     let git_dir = run(&["rev-parse", "--git-common-dir"])?;
     Ok(PathBuf::from(git_dir))
 }

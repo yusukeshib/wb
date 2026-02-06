@@ -16,26 +16,26 @@ pub enum NamingConvention {
     Prefixed,
 }
 
-/// Configuration for gb read from git config.
+/// Configuration for wb read from git config.
 #[derive(Debug, Clone)]
-pub struct GbConfig {
+pub struct WbConfig {
     /// Base directory for worktrees (default: parent of `.bare`).
     pub worktree_dir: PathBuf,
     /// Naming convention for worktree directories.
     pub naming: NamingConvention,
 }
 
-impl GbConfig {
+impl WbConfig {
     /// Load configuration from git config.
     pub fn load() -> Result<Self> {
         let root = git::find_root_dir()?;
 
-        let worktree_dir = match git::run(&["config", "--get", "gb.worktreeDir"]) {
+        let worktree_dir = match git::run(&["config", "--get", "wb.worktreeDir"]) {
             Ok(dir) if !dir.is_empty() => PathBuf::from(dir),
             _ => root,
         };
 
-        let naming = match git::run(&["config", "--get", "gb.naming"]) {
+        let naming = match git::run(&["config", "--get", "wb.naming"]) {
             Ok(val) => match val.as_str() {
                 "nested" => NamingConvention::Nested,
                 "prefixed" => NamingConvention::Prefixed,
@@ -44,7 +44,7 @@ impl GbConfig {
             _ => NamingConvention::Flat,
         };
 
-        Ok(GbConfig {
+        Ok(WbConfig {
             worktree_dir,
             naming,
         })

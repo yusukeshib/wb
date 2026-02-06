@@ -3,7 +3,7 @@ use anyhow::Result;
 use crate::worktree;
 
 /// Show the current branch name based on cwd → worktree mapping.
-/// `gb --show-current`
+/// `wb --show-current`
 pub fn run() -> Result<()> {
     let cwd = std::env::current_dir()?;
 

@@ -1,12 +1,12 @@
 use anyhow::{Result, bail};
 
-use crate::config::GbConfig;
+use crate::config::WbConfig;
 use crate::git;
 use crate::resolve;
 use crate::worktree;
 
 /// Show the worktree path for a branch.
-/// `gb --show-path <name>`
+/// `wb --show-path <name>`
 pub fn run(name: &str) -> Result<()> {
     // First check if there's an existing worktree for this branch
     if let Some(wt) = worktree::find_worktree_for_branch(name)? {
@@ -16,7 +16,7 @@ pub fn run(name: &str) -> Result<()> {
 
     // No worktree exists — compute what the path would be
     if git::branch_exists(name) {
-        let config = GbConfig::load()?;
+        let config = WbConfig::load()?;
         let path = resolve::branch_to_worktree_path(&config, name);
         println!("{}", path.display());
     } else {

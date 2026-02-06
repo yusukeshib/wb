@@ -5,7 +5,7 @@ use anyhow::{Context, Result, bail};
 
 use crate::git;
 
-/// Handle `gb init <target>` — either shell integration or repo clone/conversion.
+/// Handle `wb init <target>` — either shell integration or repo clone/conversion.
 pub fn run(target: Option<&str>, directory: Option<&str>) -> Result<()> {
     match target {
         Some("zsh") | Some("bash") | Some("fish") => {
@@ -79,7 +79,7 @@ fn clone_bare(url: &str, directory: Option<&str>) -> Result<()> {
 
     // Output cd directive for the shell wrapper
     let canonical = worktree_path.canonicalize().unwrap_or(worktree_path);
-    println!("__gb_cd:{}", canonical.display());
+    println!("__wb_cd:{}", canonical.display());
 
     Ok(())
 }
@@ -102,7 +102,7 @@ fn convert_existing() -> Result<()> {
     let git_dir_output = git::run(&["rev-parse", "--git-dir"])?;
 
     if git_dir_output == "." || git_dir_output.ends_with("/.bare") {
-        bail!("This repository is already in gb's bare-repo layout");
+        bail!("This repository is already in wb's bare-repo layout");
     }
 
     // Get the repo root
@@ -191,7 +191,7 @@ fn convert_existing() -> Result<()> {
 
     // Output cd directive
     let canonical = worktree_path.canonicalize().unwrap_or(worktree_path);
-    println!("__gb_cd:{}", canonical.display());
+    println!("__wb_cd:{}", canonical.display());
 
     Ok(())
 }

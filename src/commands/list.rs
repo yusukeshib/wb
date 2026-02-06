@@ -5,7 +5,7 @@ use crate::output;
 use crate::worktree;
 
 /// List branches.
-/// `gb`, `gb -a`, `gb -r`, `gb -v`, `gb -vv`, `gb --list <pattern>`, etc.
+/// `wb`, `wb -a`, `wb -r`, `wb -v`, `wb -vv`, `wb --list <pattern>`, etc.
 pub fn run(
     all: bool,
     remotes: bool,

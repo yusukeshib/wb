@@ -1,13 +1,13 @@
-pub const SHELL_INIT: &str = r#"# gb shell integration for bash
-# Add to .bashrc: eval "$(gb init bash)"
+pub const SHELL_INIT: &str = r#"# wb shell integration for bash
+# Add to .bashrc: eval "$(wb init bash)"
 
-gb() {
+wb() {
   local result
-  result=$(command gb "$@")
+  result=$(command wb "$@")
   local exit_code=$?
 
-  if [[ "$result" == __gb_cd:* ]]; then
-    builtin cd "${result#__gb_cd:}"
+  if [[ "$result" == __wb_cd:* ]]; then
+    builtin cd "${result#__wb_cd:}"
   elif [[ -n "$result" ]]; then
     echo "$result"
   fi
@@ -16,7 +16,7 @@ gb() {
 }
 
 # Bash completions
-_gb_completions() {
+_wb_completions() {
   local cur prev opts branches
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
@@ -48,10 +48,10 @@ _gb_completions() {
     COMPREPLY=( $(compgen -W "$branches" -- "$cur") )
   fi
 }
-complete -F _gb_completions gb
+complete -F _wb_completions wb
 
 # Prompt helper
-gb_current_branch() {
-  command gb --show-current 2>/dev/null
+wb_current_branch() {
+  command wb --show-current 2>/dev/null
 }
 "#;

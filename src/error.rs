@@ -2,7 +2,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 #[allow(dead_code)]
-pub enum GbError {
+pub enum WbError {
     #[error("fatal: not a git repository (or any parent up to mount point /)")]
     NotAGitRepo,
 
@@ -15,7 +15,7 @@ pub enum GbError {
     #[error("fatal: worktree '{0}' already exists")]
     WorktreeAlreadyExists(String),
 
-    #[error("error: the branch '{0}' is not fully merged.\nIf you are sure you want to delete it, run 'gb -D {0}'")]
+    #[error("error: the branch '{0}' is not fully merged.\nIf you are sure you want to delete it, run 'wb -D {0}'")]
     BranchNotFullyMerged(String),
 
     #[error("fatal: '{0}' is checked out at '{1}'")]

@@ -1,12 +1,12 @@
 use anyhow::{Result, bail};
 
-use crate::config::GbConfig;
+use crate::config::WbConfig;
 use crate::git;
 use crate::resolve;
 use crate::worktree;
 
 /// Rename a branch and move its worktree.
-/// `gb -m [<old>] <new>` or `gb -M [<old>] <new>`
+/// `wb -m [<old>] <new>` or `wb -M [<old>] <new>`
 pub fn run(names: &[String], force: bool) -> Result<()> {
     let (old_name, new_name) = match names.len() {
         1 => {
@@ -15,10 +15,10 @@ pub fn run(names: &[String], force: bool) -> Result<()> {
             (current, names[0].clone())
         }
         2 => (names[0].clone(), names[1].clone()),
-        _ => bail!("usage: gb -m [<old-branch>] <new-branch>"),
+        _ => bail!("usage: wb -m [<old-branch>] <new-branch>"),
     };
 
-    let config = GbConfig::load()?;
+    let config = WbConfig::load()?;
 
     // Rename the git branch ref
     git::rename_branch(&old_name, &new_name, force)?;

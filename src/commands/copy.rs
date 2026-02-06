@@ -1,12 +1,12 @@
 use anyhow::{Result, bail};
 
-use crate::config::GbConfig;
+use crate::config::WbConfig;
 use crate::git;
 use crate::resolve;
 use crate::worktree;
 
 /// Copy a branch and create a new worktree.
-/// `gb -c [<old>] <new>` or `gb -C [<old>] <new>`
+/// `wb -c [<old>] <new>` or `wb -C [<old>] <new>`
 pub fn run(names: &[String], force: bool) -> Result<()> {
     let (old_name, new_name) = match names.len() {
         1 => {
@@ -15,10 +15,10 @@ pub fn run(names: &[String], force: bool) -> Result<()> {
             (current, names[0].clone())
         }
         2 => (names[0].clone(), names[1].clone()),
-        _ => bail!("usage: gb -c [<old-branch>] <new-branch>"),
+        _ => bail!("usage: wb -c [<old-branch>] <new-branch>"),
     };
 
-    let config = GbConfig::load()?;
+    let config = WbConfig::load()?;
 
     // Copy the git branch ref
     git::copy_branch(&old_name, &new_name, force)?;
@@ -34,7 +34,7 @@ pub fn run(names: &[String], force: bool) -> Result<()> {
         new_path.display()
     );
 
-    println!("__gb_cd:{}", new_path.display());
+    println!("__wb_cd:{}", new_path.display());
 
     Ok(())
 }

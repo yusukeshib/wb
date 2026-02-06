@@ -1,10 +1,10 @@
 [package]
-name = "gb"
+name = "wb"
 version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "gb"
+name = "wb"
 path = "src/main.rs"
 
 [dependencies]

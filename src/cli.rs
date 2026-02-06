@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "gb",
+    name = "wb",
     about = "git-branch interface backed by git-worktree",
     version,
     disable_help_subcommand = true
