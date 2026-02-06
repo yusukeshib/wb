@@ -15,7 +15,7 @@
         packages = {
           wb = pkgs.rustPlatform.buildRustPackage {
             pname = "wb";
-            version = "0.1.1";
+            version = "0.1.2";
             src = ./.;
             cargoLock.lockFile = ./Cargo.lock;
             meta = with pkgs.lib; {

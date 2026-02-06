@@ -140,8 +140,9 @@ fn convert_existing() -> Result<()> {
     // Write .git file pointing to .bare
     fs::write(&dot_git, "gitdir: ./.bare\n").context("failed to write .git file")?;
 
-    // Configure: not a bare repo (so worktree commands work)
-    git::run_in(&bare_dir, &["config", "core.bare", "false"])?;
+    // Mark as bare so the root directory isn't treated as a working tree.
+    // Worktree commands work fine with bare repos (same as clone_bare path).
+    git::run_in(&bare_dir, &["config", "core.bare", "true"])?;
 
     // Use `git worktree add` to properly create the worktree with all admin files,
     // then move existing working tree files into it.
@@ -153,6 +154,9 @@ fn convert_existing() -> Result<()> {
         &bare_dir,
         &["update-ref", "--no-deref", "HEAD", &head_commit],
     )?;
+
+    // Prune stale worktree entries (e.g. from a previous failed conversion)
+    git::run_in(&bare_dir, &["worktree", "prune"])?;
 
     // Create the worktree via git (sets up .git file, commondir, index, etc.)
     git::run_in(
